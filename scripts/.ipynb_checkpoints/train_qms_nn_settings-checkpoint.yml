@@ -1,0 +1,17 @@
+batch_size: 32
+cuda_id: 0
+dropout: 0.0251515151515151
+features:
+- chasmplus
+- vest
+- cadd
+- not_scored
+lr: 0.0144776120660002
+model_folder_name: ''
+save_grads: false
+save_hiddens: false
+save_model: true
+test_file: ''
+train_file: train_dabrafenib_nested_1_1.tsv
+val_file: val_dabrafenib_nested_1_1.tsv
+weight_decay: 0.001321941148466
