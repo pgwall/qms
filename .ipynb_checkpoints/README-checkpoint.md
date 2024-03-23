@@ -82,12 +82,12 @@ python -u code/train_qms_nn.py -model_yml <filepath_to_model_settings.yml>
 An example bash script (`commandline_test_qms_nn.sh`) is provided in the `scripts` directory. 
 
 Pretrained models: 
-- Available for 5 drugs: Dabrafenib, trametinib, ponatinib, palbociclib, and osimertinib) 
-- Located in the `pretrained_models` directory
-- Each drug has models for QMS and binary features (10 total)
+- Available for 5 drugs: Dabrafenib, trametinib, ponatinib, palbociclib, and osimertinib.
+- Located in the `pretrained_models` directory.
+- Each drug has models for QMS and binary features (10 total).
     - 5 QMS feature models corresponding to the 5 final models of the outer nested loop. 
-    - 5 binary feature models (as above)
-- Model names include the exact QMS features used to train the final models (binNS is the `not_scored.csv` vector)
+    - 5 binary feature models (as above).
+- Model names include the exact QMS features used to train the final models (binNS is the `not_scored.csv` vector).
 
 Model settings are stored in .yml files and are loaded automatically to run model. Make sure to use the correct settings file for the corresponding model. These settings are:
 - batch_size: Number of samples per mini-batch.
