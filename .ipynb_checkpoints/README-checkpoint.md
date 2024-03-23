@@ -1,7 +1,3 @@
-# TODO
-1. Remove name2compound.txt \(leave name2drug.txt\)
-2. Remove compound_info.csv
-
 # QMS: Representing mutations for predicting cancer drug response
 
 Quantitative mutation scoring (QMS) is a method for distinguishing influential somatic mutations in cancer drug response models. Somatic mutations present across a tumor genome can influence its response to therapeutic agents. To capture the effects of these mutations, cancer drug models have represented tumors as a collection of gene mutation states, where each gene is assigned a single binary indicator denoting the presence/absence of a somatic mutation (1=mutated, 0=wildtype). No distinction is made between the mutations of a gene.
@@ -79,61 +75,61 @@ To train and test QMS models, please ensure you have the required files and Pyth
     
 # Run a pre-trained model
 To run a pre-trained model, execute the following:
-"""
-python -u code/train_qms_nn.py -model_yml \<\filepath_to_model_settings.yml\>\
-"""
+'''
+python -u code/train_qms_nn.py -model_yml <filepath_to_model_settings.yml>
+'''
 
 An example bash script (`commandline_test_qms_nn.sh`) is provided in the `scripts` directory. 
 
 Model settings are stored in .yml files and are loaded automatically to run model. Make sure to use the correct settings file for the corresponding model. These settings are:
-    - batch_size: Number of samples per mini-batch.
-    - cuda_id: Integer specifying specific GPU if running on a multi-gpu computing framework. Default is 0. 
-    - dropout: Dropout probability (float).
-    - features: List of feature file names to run with model. Below specifies a configuration with CHASMplus, VEST4, and CADD QMS features (with additional not_scored vector).
-        - chasmplus.csv
-        - vest.csv
-        - cadd.csv
-        - not_scored.csv
-    - keep_training_n: Terminate training if no improvement to validation set loss after this number of epochs.
-    - lr: Learning rate (float; already optimized).
-    - model_path: Path to saved model. Can use absolute path or path relative to the settings file.
-    - results_dir: Specifies path to directory to save results. Can be absolute path or path relative to the settings file.
-    - save_grads: Bool to save test set gradients. Saved in a folder called `gradients` located within the results_dir.
-    - save_hiddens: Bool to save test set hidden activation states. Saved in a folder called `hiddens` located within the results_dir.
-    - save_model: Bool to save model. Saved as `model.pt` within the results_dir.
-    - test_file: Filename of the test set located in drug_response_data directory.
-    - weight_decay: Weight decay lambda (float).
+- batch_size: Number of samples per mini-batch.
+- cuda_id: Integer specifying specific GPU if running on a multi-gpu computing framework. Default is 0. 
+- dropout: Dropout probability (float).
+- features: List of feature file names to run with model. Below specifies a configuration with CHASMplus, VEST4, and CADD QMS features (with additional not_scored vector).
+    - chasmplus.csv
+    - vest.csv
+    - cadd.csv
+    - not_scored.csv
+- keep_training_n: Terminate training if no improvement to validation set loss after this number of epochs.
+- lr: Learning rate (float; already optimized).
+- model_path: Path to saved model. Can use absolute path or path relative to the settings file.
+- results_dir: Specifies path to directory to save results. Can be absolute path or path relative to the settings file.
+- save_grads: Bool to save test set gradients. Saved in a folder called `gradients` located within the results_dir.
+- save_hiddens: Bool to save test set hidden activation states. Saved in a folder called `hiddens` located within the results_dir.
+- save_model: Bool to save model. Saved as `model.pt` within the results_dir.
+- test_file: Filename of the test set located in drug_response_data directory.
+- weight_decay: Weight decay lambda (float).
     
 Settings files are provided to test pre-trained models. Specifying a unique results_dir for each test is recommended to prevent overwriting previous tests. After running, a new settings file is saved in the results_dir
 
 
 # Train a new model
 To train a new model, execute the following:
-"""
+'''
 python -u code/train_qms_nn.py -model_yml \<\filepath_to_model_settings.yml\>\
-"""
+'''
 
 An example bash script (`commandline_train_qms_nn.sh`) is provided in the `scripts` directory.
 
 Model settings are stored in .yml files and are loaded automatically to run model. Make sure to use the correct settings file for the corresponding model. These settings are:
-    - batch_size: Number of samples per mini-batch.
-    - cuda_id: Integer specifying specific GPU if running on a multi-gpu computing framework. Default is 0. 
-    - dropout: Dropout probability (float).
-    - features: List of feature file names to run with model. Below specifies a configuration with CHASMplus, VEST4, and CADD QMS features (with additional not_scored vector).
-        - chasmplus.csv
-        - vest.csv
-        - cadd.csv
-        - not_scored.csv
-    - keep_training_n: Terminate training if no improvement to validation set loss after this number of epochs.
-    - lr: Learning rate (float; already optimized).
-    - model_path: Path to saved model. Can use absolute path or path relative to the settings file.
-    - results_dir: Specifies path to directory to save results. Can be absolute path or path relative to the settings file.
-    - save_grads: Bool to save test set gradients. Saved in a folder called `gradients` located within the results_dir.
-    - save_hiddens: Bool to save test set hidden activation states. Saved in a folder called `hiddens` located within the results_dir.
-    - save_model: Bool to save model. Saved as `model.pt` within the results_dir.
-    - train_file: Filename of the training set located in drug_response_data directory.
-    - val_file: Filename of the validation set located in drug_response_data directory.
-    - weight_decay: Weight decay lambda (float).
+- batch_size: Number of samples per mini-batch.
+- cuda_id: Integer specifying specific GPU if running on a multi-gpu computing framework. Default is 0. 
+- dropout: Dropout probability (float).
+- features: List of feature file names to run with model. Below specifies a configuration with CHASMplus, VEST4, and CADD QMS features (with additional not_scored vector).
+    - chasmplus.csv
+    - vest.csv
+    - cadd.csv
+    - not_scored.csv
+- keep_training_n: Terminate training if no improvement to validation set loss after this number of epochs.
+- lr: Learning rate (float; already optimized).
+- model_path: Path to saved model. Can use absolute path or path relative to the settings file.
+- results_dir: Specifies path to directory to save results. Can be absolute path or path relative to the settings file.
+- save_grads: Bool to save test set gradients. Saved in a folder called `gradients` located within the results_dir.
+- save_hiddens: Bool to save test set hidden activation states. Saved in a folder called `hiddens` located within the results_dir.
+- save_model: Bool to save model. Saved as `model.pt` within the results_dir.
+- train_file: Filename of the training set located in drug_response_data directory.
+- val_file: Filename of the validation set located in drug_response_data directory.
+- weight_decay: Weight decay lambda (float).
     
 Settings files are provided with the exact configurations used to train the pre-trained models. When training new models, specifying a unique results_dir for each test is recommended to prevent overwriting previous models. 
 
