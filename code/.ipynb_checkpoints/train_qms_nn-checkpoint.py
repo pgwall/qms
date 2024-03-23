@@ -16,35 +16,37 @@ import networkx.algorithms.components.connected as nxacc
 import networkx.algorithms.dag as nxadag
 
 from dataloaders import LoadFeatures
-from dataloaders import LoadOntology
+from dataloaders import LoadLayers
 
 from qms_nn import qms_nn
-from utils import *
+import utils
 
 
-def train_qms_nn(model_dir, train_file, val_file, num_hiddens_gene, lr, dropout, weight_decay, batch_size, cuda_id, features, ont, save_hiddens, save_grads):
+def train_qms_nn(results_dir, train_file, val_file, lr, dropout, weight_decay, batch_size, cuda_id, ft, layers, save_hiddens, save_grads, save_model, keep_training_n, **kwargs):
     start_time = time.time()
     
-    id2gene = features.id2gene.copy()
+    id2gene = ft.id2gene.copy()
     gene_dim = len(id2gene)
     
-    feat_names = features.feature_names
-    model_input = features.make_model_input()
+    feat_names = ft.feature_names
+    model_input = ft.make_model_input()
     
-    # 
-    model = qms_nn(num_hiddens_gene, dropout, id2gene, gene_dim, feat_names, ont,)
+    num_hiddens_gene = len(feat_names)
+    
+    model = qms_nn(num_hiddens_gene, dropout, id2gene, gene_dim, feat_names, layers,)
+    
     optimizer = torch.optim.AdamW(model.parameters(), betas=(0.9, 0.99), eps=1e-05, lr=lr, weight_decay=weight_decay)
     
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.2, eps=1e-10)
     
-    num_params = count_params(model)
+    num_params = utils.count_params(model)
     print(f'Number of model parameters: {num_params}')
     
     # Send model to GPU
     model.cuda(cuda_id)
     
-    train_data = load_drug_data(train_file, features)
-    val_data = load_drug_data(val_file, features)
+    train_data = utils.load_drug_data(train_file, ft)
+    val_data = utils.load_drug_data(val_file, ft)
     
     # Train args: train_data, val_data
     train_feats, train_labels = torch.Tensor(train_data[0]), torch.Tensor(train_data[1])
@@ -54,7 +56,7 @@ def train_qms_nn(model_dir, train_file, val_file, num_hiddens_gene, lr, dropout,
     train_loader = du.DataLoader(du.TensorDataset(train_feats, train_labels), batch_size=batch_size, shuffle=True)
     val_loader   = du.DataLoader(du.TensorDataset(val_feats, val_labels), batch_size=batch_size, shuffle=False)
     
-    mode = set_mode(train_file, val_file)
+    mode = utils.set_mode(train_file, val_file)
     val_loss_list = []
     best_loss = 1e6
     epoch = 0
@@ -66,15 +68,15 @@ def train_qms_nn(model_dir, train_file, val_file, num_hiddens_gene, lr, dropout,
         epoch_start = time.time()
 
         model.train()
-        train_predict, train_real_gpu, total_train_loss = run_batches('train', model, train_loader, model_input, save_hiddens, save_grads, optimizer=optimizer)
+        train_predict, train_real_gpu, total_train_loss = run_batches('train', model, train_loader, model_input, save_hiddens, save_grads, results_dir, cuda_id, optimizer=optimizer)
 
         model.eval()
-        val_predict, val_real_gpu, total_val_loss = run_batches(mode, model, val_loader, model_input, save_hiddens, save_grads)
+        val_predict, val_real_gpu, total_val_loss = run_batches(mode, model, val_loader, model_input, save_hiddens, save_grads, results_dir, cuda_id)
 
         scheduler.step(total_val_loss)
 
-        train_corr = pearson_corr(train_predict, train_real_gpu).item()
-        val_corr   = pearson_corr(val_predict, val_real_gpu).item()
+        train_corr = utils.pearson_corr(train_predict, train_real_gpu).item()
+        val_corr   = utils.pearson_corr(val_predict, val_real_gpu).item()
 
         train_mse = mean_squared_error(train_real_gpu.cpu().numpy(), train_predict.cpu().numpy())
         val_mse   = mean_squared_error(val_real_gpu.cpu().numpy(), val_predict.cpu().numpy())
@@ -93,8 +95,8 @@ def train_qms_nn(model_dir, train_file, val_file, num_hiddens_gene, lr, dropout,
                            'best_epoch_tr_corr':train_corr}
             best_preds = val_predict.cpu().numpy()
 
-        #training = keep_training(val_loss_list, epoch)
-        training = False
+        training = keep_training(val_loss_list, epoch, keep_training_n)
+        #training = False
 
         if not training:
             train_time = time.time() - start_time
@@ -102,18 +104,21 @@ def train_qms_nn(model_dir, train_file, val_file, num_hiddens_gene, lr, dropout,
             best_results['train_time'] = train_time
             best_results['val_loss_list'] = val_loss_list
             
+            max_mem = torch.cuda.max_memory_allocated(device=cuda_id)/(1024**3)
+            print(f'\nMax GPU memory occupied during RUN: {max_mem:.3f}GB\n')
+            
             print(f'Training complete. Time to train: {train_time/60:.2f} minutes')
         
-        save_predictions(mode, val_data, best_preds, model_dir)
+        utils.save_predictions(mode, val_data, best_preds, results_dir)
             
     return best_results, best_states
 
 
 
 
-def run_batches(mode, model, data_loader, model_input, save_hiddens, save_grads, optimizer=None):
+def run_batches(mode, model, data_loader, model_input, save_hiddens, save_grads, results_dir, cuda_id, optimizer=None):
     """
-    Run epoch batches for mode = train, val, or test
+    Run batches for one epoch, save preds/grads/hiddens as needed
     """
 
     epoch_predict = torch.zeros(0, 0).type(torch.FloatTensor).cuda(cuda_id)
@@ -121,7 +126,7 @@ def run_batches(mode, model, data_loader, model_input, save_hiddens, save_grads,
     total_epoch_loss = 0
 
     for i, (input_data, input_labels) in enumerate(data_loader):
-        features, labels = build_input_features(model_input, input_data, input_labels)
+        features, labels = utils.build_input_features(model_input, input_data, input_labels)
 
         cuda_features = torch.Tensor(features).cuda(cuda_id)
         cuda_labels   = torch.Tensor(labels).cuda(cuda_id)
@@ -151,10 +156,10 @@ def run_batches(mode, model, data_loader, model_input, save_hiddens, save_grads,
             optimizer.zero_grad()
 
         if mode == 'test' and save_hiddens:
-            save_hiddens([out_map, out_map_gene], model_dir)
+            utils.save_hiddens([out_map, out_map_gene], results_dir)
 
         if mode == 'test' and save_grads:
-            save_gradients(aux_out_map, [out_map, out_map_gene, input_map], model_dir)
+            utils.save_gradients(aux_out_map, [out_map, out_map_gene, input_map], results_dir)
 
         #Memory cleanup
         del features
@@ -162,11 +167,11 @@ def run_batches(mode, model, data_loader, model_input, save_hiddens, save_grads,
         del cuda_labels
         gc.collect()
         torch.cuda.empty_cache()
-    # Both are still on GPU
+    
     return epoch_predict, epoch_real, total_epoch_loss
 
 
-def keep_training(loss_list, current_epoch, keep_training_n=10, keep_training_delta=1e-4, max_epochs=50):
+def keep_training(loss_list, current_epoch, keep_training_n=20, keep_training_delta=1e-4, max_epochs=50):
     """
     Function controls stoppage for main_train() function. 
 
@@ -207,9 +212,9 @@ def update_state_dicts(model, optimizer, save_model,):
     return states
 
 
-def save_state_dicts(best_states, model_dir):
-    model_path = os.path.join(model_dir, 'model.pt')
-    optim_path = os.path.join(model_dir, 'optimizer.pt')
+def save_state_dicts(best_states, results_dir):
+    model_path = os.path.join(results_dir, 'model.pt')
+    optim_path = os.path.join(results_dir, 'optimizer.pt')
         
     if len(best_states) > 0:
         torch.save(best_states['model_state_dict'], model_path)
@@ -218,46 +223,32 @@ def save_state_dicts(best_states, model_dir):
 
 # Define parameters ##################################
 parser = argparse.ArgumentParser(description = 'Train QMS drug response model')
-parser.add_argument('-model_yml', help='Filepath to model configuration YAML file', default='')
+parser.add_argument('-model_yml', help='Filepath to model settings YAML file', default='')
 opt = parser.parse_args()
 
-settings = read_yml(opt.model_yml)
+settings = utils.read_yml(opt.model_yml)
 
-train_file = settings['train_file']
-val_file = settings['val_file']
-test_file = settings['test_file']
+ft = LoadFeatures(settings['features'])
+layers = LoadLayers()
 
-save_model = settings['save_model']
-save_grads = settings['save_grads']
-
-features = LoadFeatures(settings['features'])
-ont = LoadOntology()
-
-num_hiddens_gene = len(features.feature_names)
-weight_decay = settings['weight_decay']
-batch_size = settings['batch_size']
-dropout = settings['dropout']
-lr = settings['lr']
-cuda_id = settings['cuda_id']
-
-model_name = settings['model_folder_name']
-if not model_name:
-    model_name = train_file.split('.')[0]
-model_dir = os.path.abspath('../models/'+model_name)
-os.makedirs(model_dir, exist_ok=True)
-
-settings['model_dir'] = model_dir
-settings['model_name'] = model_name
-settings['num_hiddens_gene'] = num_hiddens_gene
+# Create the directory to store results and model
+results_dir = utils.create_results_directory(settings)
 
 
 
 # Train model ##################################
-best_results, best_states = train_qms_nn(model_dir, train_file, val_file, num_hiddens_gene, lr, dropout, 
-                                         weight_decay, batch_size, cuda_id, features, ont, save_hiddens, save_grads )
 
-save_state_dicts(best_states, model_dir)
+best_results, best_states = train_qms_nn(ft=ft, layers=layers, **settings)
 
-save_results(settings, best_results, model_dir)
+################################################
 
-write_yml(os.path.join(model_dir, 'model_settings.yml'), settings)
+
+
+save_state_dicts(best_states, results_dir)
+
+utils.save_results(settings, best_results, results_dir)
+
+utils.write_yml(os.path.join(results_dir, 'model_settings.yml'), settings)
+
+# TODO:
+# * Update keep_training 

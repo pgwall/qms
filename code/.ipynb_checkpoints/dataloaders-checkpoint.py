@@ -52,9 +52,9 @@ class LoadFeatures():
         self.id2cell = {int(v):k for k,v in self.cell2id.items()}
         self.id2drug = {int(v):k for k,v in self.drug2id.items()}
         
-        # Maintains a default feature order
-        self.order = ['chasmplus', 'vest', 'cadd', 'binary', 'not_scored', ]
-        self.order = self.order + ['skcm2012_'+x for x in self.order] + ['braf_v600']
+        # Maintains a default feature order --> Critical for interpretation methods
+        self.order = ['chasmplus.csv', 'vest.csv', 'cadd.csv', 'binary.csv', 'not_scored.csv', ]
+        self.order = self.order + ['skcm2012_'+x for x in self.order] + ['braf_v600.csv']
         
         # Keeps feature order consistent
         ordered_args = [x for x in self.order if x in features]
@@ -68,8 +68,8 @@ class LoadFeatures():
     def __getitem__(self, key):
         return self.__dict__[key]
         
-    def _load_vec_file(self, vec_name, cells=[], genes=[]):
-        feat_path = os.path.join(self.feat_dir, vec_name+'.csv')
+    def _load_vec_file(self, vec_file, cells=[], genes=[]):
+        feat_path = os.path.join(self.feat_dir, vec_file)
         feat = np.genfromtxt(feat_path, delimiter=',')
         if cells:
             cell_ids = [self.cell2id[c] for c in cells]
@@ -78,7 +78,7 @@ class LoadFeatures():
             gene_ids = [self.gene2id[g] for g in genes]
             feat = feat[:, gene_ids]
             
-        print(f'Loaded {vec_name}\tshape {feat.shape}')
+        print(f'Loaded {vec_file}\tshape {feat.shape}')
             
         return feat
         
@@ -111,12 +111,14 @@ class LoadFeatures():
 
             
 
-class LoadOntology():
+class LoadLayers():
     """
-    Loads NN's architecture. Tracks relationships between model features for downstream analysis
+    Loads info of NN layers
     """
+    # TODO: 
+    # * Change self.data_dir back to ../data
     def __init__(self, ontology_file='ont.txt'):
-        self.data_dir = os.path.abspath('../data')
+        self.data_dir = os.path.abspath('../data') 
         print('data dir', self.data_dir)
         
         self.ont_filepath = os.path.join(self.data_dir, ontology_file)
@@ -134,8 +136,6 @@ class LoadOntology():
         term2layer, layer2terms = self.make_layer_maps()
         self.term2layer = term2layer
         self.layer2terms = layer2terms
-        
-        self.go2name = self.load_go_descriptions()
         
         self.all = (dG, root, term_size_map, term_direct_gene_map, gene_2_term)
     
@@ -206,7 +206,8 @@ class LoadOntology():
         print('There are', len(connected_subG_list), 'connected componenets')
 
         if len(leaves) > 1:
-            print('There are more than 1 root of ontology. Please use only one root.')
+            print(
+                'There are more than 1 root of ontology. Please use only one root.')
             sys.exit(1)
         if len(connected_subG_list) > 1:
             print('There are more than connected components. Please connect them.')
@@ -237,6 +238,37 @@ class LoadOntology():
             dGl.remove_nodes_from(leaves)
             
         return term2layer, layer2terms
+
+    
+    def add_genes(self):
+        """
+        Returns copy of self.dG annotated with self.genes 
+        """
+        dGg = self.dG.copy()
+
+        for gene, terms in self.gene2terms.items():
+            for term in terms:
+                dGg.add_edge(term, gene)
+                
+        return dGg
+    
+    def add_features(self, dG_genes, features):
+        """
+        Returns copy of dG_genes annotated with features
+        """
+        dGgf= dG_genes.copy()
+        
+        if not isinstance(features, list):
+            features = [features]
+            
+        gene_nodes = [x for x in dGgf.nodes() if x in self.gene2terms]
+
+        for gene in gene_nodes:
+            for feat in features:
+                feat_str = '_'.join([gene, feat])
+                dGgf.add_edge(gene, feat_str)
+                
+        return dGgf
     
     def load_go_descriptions(self):
         go_2_name_file = os.path.join(self.data_dir, 'term_descriptions.txt')

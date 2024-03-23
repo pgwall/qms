@@ -211,10 +211,10 @@ class qms_nn(nn.Module):
 
         aux_layer_out = torch.tanh(self._modules['final_aux_linear_layer'](out))
         out_aux_map['final'] = self._modules['final_linear_layer_output'](aux_layer_out)
+
         
         # Ouputs: 
-        # * out_aux_map  --> GO#:resp, gene_name:resp
-        # * out_map      --> GO#:hiddens
-        # * out_map_gene --> gene_name:hiddens
-        # * input map    --> 
+        # * out_aux_map  --> Predicted AUDRC of samples
+        # * out_map_gene --> hidden activation states of gene ne
+        # * input map    --> input features of each gene
         return out_aux_map, out_map, out_map_gene, input_map

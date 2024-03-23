@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH --job-name test
-#SBATCH --output=/cellar/users/pgwall/nrnb_logs/test_submission.%j
+#SBATCH --job-name train
+#SBATCH --output=/cellar/users/pgwall/nrnb_logs/train_submission.%j
 #SBATCH --time=0-04:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G

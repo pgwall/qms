@@ -1,0 +1,35 @@
+batch_size: 32
+cuda_id: 0
+dropout: 0.0251515151515151
+features:
+- chasmplus.csv
+- vest.csv
+- cadd.csv
+- not_scored.csv
+keep_training_n: 20
+lr: 0.0144776120660002
+model_path: ../models/train_dabrafenib_1_1/model.pt
+results_dir: ../models/train_dabrafenib_1_1
+save_grads: true
+save_hiddens: true
+save_model: false
+test_corr: -5.381415491001462e-08
+test_file: test_dabrafenib_nested_1_1.tsv
+test_mse: !!python/object/apply:numpy.core.multiarray.scalar
+- !!python/object/apply:numpy.dtype
+  args:
+  - f4
+  - false
+  - true
+  state: !!python/tuple
+  - 3
+  - <
+  - null
+  - null
+  - null
+  - -1
+  - -1
+  - 0
+- !!binary |
+  fDoVPQ==
+weight_decay: 0.001321941148466

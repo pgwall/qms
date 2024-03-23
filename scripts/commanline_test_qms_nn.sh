@@ -1,7 +1,7 @@
 #!/bin/bash
 
-settingsfile="./train_qms_nn_settings.yml"
+settingsfile="./test_qms_nn_settings.yml"
 
-source activate jupyter
+source activate qms
 
 python -u ../code/test_qms_nn.py -model_yml $settingsfile 

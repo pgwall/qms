@@ -31,12 +31,21 @@ def build_input_features(model_input, input_data, label):
     return feature, label
 
 
-def create_model_directory(model_name):
-    if not model_name:
-        model_name = train_file.split('.')[0]
-    model_dir = os.path.abspath('../models/'+model_name)
-    os.makedirs(model_dir)
-    return model_dir, model_name
+def create_results_directory(settings):
+    if not settings['results_dir']:
+        try:
+            results_dir = settings['train_file'].split('.')[0]+'_results'
+        except:
+            results_dir = settings['test_file'].split('.')[0]+'_results'
+    else:
+        results_dir = settings['results_dir']
+        
+        if '..' not in results_dir:
+            results_dir = os.path.abspath('../'+results_dir)
+            
+    os.makedirs(results_dir, exist_ok=True)
+    settings['results_dir'] = results_dir
+    return results_dir
 
 
 def load_drug_data(file, features):
@@ -74,23 +83,22 @@ def save_gradients(aux_out_map, hidden_maps, model_dir):
     if not os.path.exists(gradients_dir):
         os.makedirs(gradients_dir)
 
-    # Tracks module's inputs in order to reconstruct input order for interpretation methods
+    # Register hook to save gradients
     saved_grads = {}
     for hidden_map in hidden_maps:
         for term in hidden_map:
             hidden_map[term].register_hook(save_grad(term, saved_grads)) 
     
-    # fire gradient
+    # fire gradients
     aux_out_map['final'].backward(torch.ones_like(aux_out_map['final']))
     
     # Save gene gradients
     for term, grad in saved_grads.items():
-        if 'GO:' not in term:
-            filepath = os.path.join(gradients_dir, term+'.grad')
-            with open(filepath, 'ab') as f:
-                np.savetxt(f, grad.data.cpu().numpy(), '%.4e')
+        filepath = os.path.join(gradients_dir, term+'.grad')
+        with open(filepath, 'ab') as f:
+            np.savetxt(f, grad.data.cpu().numpy(), '%.4e')
     
-    # Saves the input features, so you don't have to reconstruct the gene inputs for downstream analyses
+    # Saves the input features for each gene for downstream analyses
     for term, inpt in hidden_maps[-1].items():
         filepath = os.path.join(gradients_dir, term+'.input')
         with open(filepath, 'ab') as f: #
@@ -101,7 +109,8 @@ def save_gradients(aux_out_map, hidden_maps, model_dir):
 def save_predictions(mode, data, preds, model_dir):
         
     filepath = os.path.join(model_dir, mode+'.predict')
-
+    
+    # cell, drug, resp, pred
     data_stack = np.hstack((data[0], data[1], preds))
 
     data = pd.DataFrame(data_stack, columns=['cell', 'drug', 'resp', 'pred'])
@@ -115,12 +124,12 @@ def save_predictions(mode, data, preds, model_dir):
         
         
 
-def save_results(model_info, best_results, model_dir):
-    model_info.update(best_results)
+def save_results(settings_dict, best_results, results_dir):
+    settings_dict.update(best_results)
     
-    filepath = os.path.join(model_dir, 'results.tsv')
+    filepath = os.path.join(results_dir, 'results.tsv')
     
-    df = pd.DataFrame.from_dict({k:[v] for k,v in model_info.items()})
+    df = pd.DataFrame.from_dict({k:[v] for k,v in settings_dict.items()})
     
     df.to_csv(filepath, index=None, sep='\t')
             
@@ -134,12 +143,11 @@ def save_hiddens(out_map_list, model_dir, writing_mode='w'):
 
     for hiddens_maps in out_map_list:
         for term, hidden_map in hiddens_maps.items():
-            if 'GO:' not in term:
-                hidden_file = os.path.join(hiddens_dir, term+'.hidden')
-                if os.path.exists(hidden_file):
-                    writing_mode = 'ab'
-                with open(hidden_file, writing_mode) as f: #'ab'
-                    np.savetxt(f, hidden_map.data.cpu().numpy(), '%.5e')
+            hidden_file = os.path.join(hiddens_dir, term+'.hidden')
+            if os.path.exists(hidden_file):
+                writing_mode = 'ab'
+            with open(hidden_file, writing_mode) as f: #'ab'
+                np.savetxt(f, hidden_map.data.cpu().numpy(), '%.5e')
                     
                     
 def load_results(model_dir):
@@ -148,12 +156,13 @@ def load_results(model_dir):
 
 
 
-def load_saved_model(qms_nn, saved_model_dir, num_hiddens_gene, dropout, id2gene, gene_dim, feat_names, ont,):
-    saved_model_filepath = os.path.join(saved_model_dir, 'model.pt')
+def load_saved_model(qms_nn, model_path, num_hiddens_gene, id2gene, gene_dim, feat_names, ont, dropout=None):
+    if '..' in model_path:
+        model_path = os.path.abspath(model_path)
     
     model = qms_nn(num_hiddens_gene, dropout, id2gene, gene_dim, feat_names, ont,)
     
-    model_state = torch.load(saved_model_filepath, map_location=torch.device('cpu'))
+    model_state = torch.load(model_path, map_location=torch.device('cpu'))
     
     model.load_state_dict(model_state)
     model.eval()

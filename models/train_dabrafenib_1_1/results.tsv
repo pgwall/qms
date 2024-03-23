@@ -1,0 +1,2 @@
+batch_size	cuda_id	dropout	features	keep_training_n	lr	model_path	results_dir	save_grads	save_hiddens	save_model	test_file	weight_decay	test_corr	test_mse
+32	0	0.0251515151515151	['chasmplus.csv', 'vest.csv', 'cadd.csv', 'not_scored.csv']	20	0.0144776120660002	../models/train_dabrafenib_1_1/model.pt	../models/train_dabrafenib_1_1	True	True	False	test_dabrafenib_nested_1_1.tsv	0.001321941148466	-5.381415491001462e-08	0.03643273

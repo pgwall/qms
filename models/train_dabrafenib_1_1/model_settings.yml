@@ -1,0 +1,129 @@
+batch_size: 32
+best_epoch: 18
+best_epoch_mse: &id002 !!python/object/apply:numpy.core.multiarray.scalar
+- &id001 !!python/object/apply:numpy.dtype
+  args:
+  - f4
+  - false
+  - true
+  state: !!python/tuple
+  - 3
+  - <
+  - null
+  - null
+  - null
+  - -1
+  - -1
+  - 0
+- !!binary |
+  cnW+PA==
+best_epoch_tr_corr: 0.7806764841079712
+best_epoch_tr_mse: !!python/object/apply:numpy.core.multiarray.scalar
+- *id001
+- !!binary |
+  n6ZGPA==
+cuda_id: 0
+dropout: 0.0251515151515151
+features:
+- chasmplus.csv
+- vest.csv
+- cadd.csv
+- not_scored.csv
+keep_training_n: 5
+lr: 0.0144776120660002
+n_epochs: 22
+results_dir: /cellar/users/pgwall/qms/models/train_dabrafenib_1_1
+save_grads: false
+save_hiddens: false
+save_model: true
+test_file: ''
+train_file: train_dabrafenib_nested_1_1.tsv
+train_time: 1013.4346833229065
+val_file: val_dabrafenib_nested_1_1.tsv
+val_loss_list:
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    HTiEPQ==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    jScrPQ==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    x7IAPQ==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    /B0KPQ==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    Ubv1PA==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    T4f5PA==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    s8/9PA==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    K9/uPA==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    QeMAPQ==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    SaH6PA==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    x4LjPA==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    eYkFPQ==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    xLswPQ==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    r6LhPA==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    Mu/wPA==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    jnkJPQ==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    ocPKPA==
+- *id002
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    l0niPA==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    8wEJPQ==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    DAkDPQ==
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    M9/SPA==
+weight_decay: 0.001321941148466

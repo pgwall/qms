@@ -1,0 +1,22 @@
+name: qms
+channels:
+  - pytorch
+  - nvidia
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pytorch=1.13.1
+  - cuda-toolkit=11.7
+  - torchaudio=0.13.1
+  - torchvision=0.14.1
+  - pytorch-cuda=11.7
+  - matplotlib
+  - networkx
+  - numpy
+  - pandas
+  - plotly
+  - scikit-learn
+  - scipy
+  - pyyaml
+prefix: /cellar/users/pgwall/anaconda3/envs/qms

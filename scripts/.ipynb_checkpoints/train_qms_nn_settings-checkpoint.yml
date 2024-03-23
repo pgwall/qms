@@ -2,12 +2,13 @@ batch_size: 32
 cuda_id: 0
 dropout: 0.0251515151515151
 features:
-- chasmplus
-- vest
-- cadd
-- not_scored
+- chasmplus.csv
+- vest.csv
+- cadd.csv
+- not_scored.csv
+keep_training_n: 5 
 lr: 0.0144776120660002
-model_folder_name: ''
+results_dir: 'models/train_dabrafenib_1_1'
 save_grads: false
 save_hiddens: false
 save_model: true
