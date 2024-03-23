@@ -75,9 +75,9 @@ To train and test QMS models, please ensure you have the required files and Pyth
     
 # Run a pre-trained model
 To run a pre-trained model, execute the following:
-'''
+```
 python -u code/train_qms_nn.py -model_yml <filepath_to_model_settings.yml>
-'''
+```
 
 An example bash script (`commandline_test_qms_nn.sh`) is provided in the `scripts` directory. 
 
@@ -113,9 +113,9 @@ Settings files are provided to test pre-trained models. Specifying a unique resu
 
 # Train a new model
 To train a new model, execute the following:
-'''
+```
 python -u code/train_qms_nn.py -model_yml \<\filepath_to_model_settings.yml\>\
-'''
+```
 
 An example bash script (`commandline_train_qms_nn.sh`) is provided in the `scripts` directory.
 
