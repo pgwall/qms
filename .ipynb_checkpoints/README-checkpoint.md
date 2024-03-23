@@ -89,7 +89,7 @@ Pretrained models:
     - 5 binary feature models (as above).
 - Model names include the exact QMS features used to train the final models (binNS is the `not_scored.csv` vector).
 
-Model settings are stored in .yml files and are loaded automatically to run model. Make sure to use the correct settings file for the corresponding model. These settings are:
+Model settings are stored in .yml files. Make sure to use the correct settings file for the corresponding model. These settings are:
 - batch_size: Number of samples per mini-batch.
 - cuda_id: Integer specifying specific GPU if running on a multi-gpu computing framework. Default is 0. 
 - dropout: Dropout probability (float).
